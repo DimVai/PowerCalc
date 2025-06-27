@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="el" style="color-scheme:dark;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Υπολογιστής Διάρκειας Μπαταρίας</title>
+
+    <meta name="theme-color" content="#52ad26">
+    <link rel="manifest" href="pwa/manifest.json">     
+    <link rel="icon" href="favicon.ico" type="image/x-icon"/>
+    
+    
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    
+    <script defer src="pwa/pwa.js"></script>
+
+        
+</head>
+<body data-bs-theme="dark" class="p-4">
+
+    <header>
+        <h1 class="text-center mb-2">Υπολογιστής Διάρκειας Μπαταρίας</h1>
+    </header>
+
+
+    <main class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-12 col-sm-8 col-md-6 col-lg-4">
+                
+                <!-- Φόρμα Υπολογισμού -->
+                <div class="card bg-dark border-secondary mt-3">
+                    <div class="card-body">
+                        <form id="batteryCalculator">
+                            
+                            <!-- Χωρητικότητα Μπαταρίας -->
+                            <div class="mb-3">
+                                <label for="capacity" class="form-label">
+                                    <i class="bi bi-battery"></i> Χωρητικότητα Μπαταρίας
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-dark text-light border-secondary" 
+                                           id="capacity" value="1200" placeholder="π.χ. 1500" min="0" step="1" required>
+                                    <button class="btn btn-outline-secondary text-light" type="button" id="capacityUnit">Wh</button>
+                                </div>
+                            </div>
+
+                            <!-- Φορτίο -->
+                            <div class="mb-3">
+                                <label for="load" class="form-label">
+                                    <i class="bi bi-lightning-charge"></i> Φορτίο
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-dark text-light border-secondary" 
+                                           id="load" value="100" placeholder="π.χ. 100" min="0" step="1" required>
+                                    <span class="input-group-text bg-dark text-light border-secondary">W</span>
+                                </div>
+                            </div>
+
+                            <!-- Αποδοτικότητα -->
+                            <div class="mb-4">
+                                <label for="efficiency" class="form-label">
+                                    <i class="bi bi-speedometer2"></i> Αποδοτικότητα
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control bg-dark text-light border-secondary" 
+                                           id="efficiency" value="80" min="1" max="100" step="1" required>
+                                    <span class="input-group-text bg-dark text-light border-secondary">%</span>
+                                </div>
+                            </div>
+
+                            <!-- Κουμπί Υπολογισμού -->
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="bi bi-calculator"></i> Υπολογισμός
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Αποτελέσματα -->
+                <div id="results" class="card bg-dark border-secondary mt-3" style="display: none;">
+                    <div class="card-body">
+                        <h5 class="card-title text-success mb-0 text-center">
+                            <i class="bi bi-clock"></i> Διάρκεια Ζωής Μπαταρίας
+                        </h5>
+                        <div id="duration" class="fs-4 text-center my-3 fw-bold"></div>
+                        <div id="details" class="text-muted small"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer>
+
+    </footer>
+
+    <script>
+        // Μετατροπή μονάδων χωρητικότητας
+        let isWh = true; // true για Wh, false για mAh
+        const nominalVoltage = 12.8; // Τυπική τάση power station (LiFePO4 4S) σε V
+        
+        document.getElementById('capacityUnit').addEventListener('click', function() {
+            const capacityInput = document.getElementById('capacity');
+            const currentValue = parseFloat(capacityInput.value) || 0;
+            
+            if (isWh) {
+                // Μετατροπή από Wh σε mAh
+                const mAhValue = Math.round((currentValue * 1000) / nominalVoltage);
+                capacityInput.value = mAhValue;
+                capacityInput.placeholder = 'π.χ. 117000';
+                this.textContent = 'mAh';
+                isWh = false;
+            } else {
+                // Μετατροπή από mAh σε Wh
+                const whValue = Math.round((currentValue * nominalVoltage) / 1000 * 10) / 10;
+                capacityInput.value = whValue;
+                capacityInput.placeholder = 'π.χ. 1500';
+                this.textContent = 'Wh';
+                isWh = true;
+            }
+            
+            // Κρύψιμο αποτελεσμάτων μετά την αλλαγή μονάδας
+            document.getElementById('results').style.display = 'none';
+        });
+
+        document.getElementById('batteryCalculator').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Λήψη τιμών από τα πεδία
+            const capacityValue = parseFloat(document.getElementById('capacity').value);
+            const load = parseFloat(document.getElementById('load').value);
+            const efficiency = parseFloat(document.getElementById('efficiency').value);
+            
+            // Μετατροπή σε Wh αν είναι σε mAh
+            const capacity = isWh ? capacityValue : (capacityValue * nominalVoltage) / 1000;
+            
+            // Έλεγχος εγκυρότητας
+            if (!capacityValue || !load || !efficiency) {
+                alert('Παρακαλώ συμπληρώστε όλα τα πεδία');
+                return;
+            }
+            
+            if (capacityValue <= 0 || load <= 0 || efficiency <= 0 || efficiency > 100) {
+                alert('Παρακαλώ εισάγετε έγκυρες τιμές');
+                return;
+            }
+            
+            // Υπολογισμός διάρκειας
+            const effectiveCapacity = capacity * (efficiency / 100);
+            const durationHours = effectiveCapacity / load;
+            
+            // Μετατροπή σε ώρες και λεπτά
+            const hours = Math.floor(durationHours);
+            const minutes = Math.round((durationHours - hours) * 60);
+            
+            // Εμφάνιση αποτελεσμάτων σε μορφή ωω:λλ
+            const formattedHours = hours.toString().padStart(2, '0');
+            const formattedMinutes = minutes.toString().padStart(2, '0');
+            const durationText = `${formattedHours}:${formattedMinutes}`;
+            
+            document.getElementById('duration').textContent = durationText;
+            
+            // Λεπτομέρειες υπολογισμού
+            const capacityUnit = isWh ? 'Wh' : 'mAh';
+            const detailsText = `
+                Χωρητικότητα: ${capacityValue} ${capacityUnit}<br>
+                Αποδοτικότητα: ${efficiency}%<br>
+                Πραγματική χωρητικότητα: ${effectiveCapacity.toFixed(0)} Wh<br>
+                Φορτίο: ${load} W<br>
+                Συνολική διάρκεια (ωω:λλ): ${formattedHours}:${formattedMinutes}
+            `;
+            
+            document.getElementById('details').innerHTML = detailsText;
+            document.getElementById('results').style.display = 'block';
+            
+            // Scroll στα αποτελέσματα
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        });
+        
+        // Καθαρισμός αποτελεσμάτων όταν αλλάζουν οι τιμές
+        ['capacity', 'load', 'efficiency'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                document.getElementById('results').style.display = 'none';
+            });
+        });
+    </script>
+
+    
+</body>
+</html>

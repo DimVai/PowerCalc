@@ -1,0 +1,20 @@
+{
+    "name": "Power Calculator",
+    "short_name": "PowerCalc",
+    "start_url": "../",
+    "scope": "..",
+    "categories": ["utilities", "calculator"],
+    "display": "standalone",    
+    "background_color": "#52ad26",
+    "theme_color": "#52ad26",
+    "description": "Υπολογίζει την διάρκεια ζωής μπαταρίας με βάση την χωρητικότητά της και την ισχύ.",
+    "orientation": "portrait",
+    "lang": "el",
+    "icons": [
+        {
+            "src": "battery-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+      ]
+}
