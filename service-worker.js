@@ -42,7 +42,7 @@ const logPlugin = {
 
 // prefer internet on API calls or JavaScript fetch requests
 workbox.routing.registerRoute(
-    ({ url, request }) => url.pathname.includes('/api/') || url.hostname.includes('freecurrencyapi.com'),
+    ({ url, request }) => url.pathname.includes('/api/'),
     new workbox.strategies.NetworkFirst({
         plugins: [logPlugin]
     }),
